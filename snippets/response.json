@@ -1,0 +1,21 @@
+{
+	"name": "response",
+	"parentType": "document",
+	"properties": [{
+		"name": "headers",
+		"type": "object",
+		"subtype": "header"
+	}, {
+		"name": "content",
+		"subtype": "media",
+		"type": "object",
+		"properties": [{
+			"name": "application/json",
+			"type": "media"
+		}]
+	},{
+		"name": "links",
+		"type": "object",
+		"subtype": "link"
+	}]
+}

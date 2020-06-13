@@ -1,0 +1,28 @@
+{
+	"name": "encoding",
+	"erdAbbreviation": "<encod>",
+	"dtdAbbreviation": "{...}",
+	"parentType": "document",
+	"defaultValues": {
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"dependencies": [],
+		"ignore_z_value": true,
+		"minProperties": "",
+		"maxProperties": "",
+		"snippet": "encoding",
+		"additionalProperties": false,
+		"enum": [],
+		"hackoladeMeta": {
+			"disableAdd": true
+		}
+	},
+	"subtypes": {
+		"snippetChildrenOnly": {
+			"childValueType": {}
+		}
+	}
+}

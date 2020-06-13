@@ -1,0 +1,28 @@
+{
+	"name": "example",
+	"erdAbbreviation": "<example>",
+	"dtdAbbreviation": "{...}",
+	"parentType": "document",
+	"defaultValues": {
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"dependencies": [],
+		"ignore_z_value": true,
+		"minProperties": "",
+		"subtype": "snippetChildrenOnly",
+		"maxProperties": "",
+		"additionalProperties": false,
+		"enum": [],
+		"hackoladeMeta": {
+			"disableAdd": true
+		}
+	},
+	"subtypes": {
+		"snippetChildrenOnly": {
+			"childValueType": {}
+		}
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"name": "responseStructure",
+	"properties": [{
+		"name": "response",
+		"type": "response",
+		"properties": [{
+			"name": "headers",
+			"type": "object",
+			"subtype": "header"
+		}, {
+			"name": "content",
+			"subtype": "media",
+			"type": "object",
+			"properties": [{
+				"name": "application/json",
+				"type": "media",
+				"properties": [{
+					"name": "schema",
+					"type": "object"
+				}, {
+					"name": "examples",
+					"type": "object",
+					"subtype": "example"
+				}, {
+					"name": "encoding",
+					"type": "object",
+					"subtype": "encoding"
+				}]
+			}]
+		},{
+			"name": "links",
+			"type": "object",
+			"subtype": "link"
+		}]
+	}]
+}

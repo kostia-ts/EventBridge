@@ -1,0 +1,79 @@
+{
+    "name": "EventBridge",
+    "version": "0.0.1",
+    "versionDate": "2020-06-13",
+    "author": "hackolade",
+    "engines": {
+        "hackolade": "4.1.4",
+        "hackoladePlugin": "1.0.0"
+    },
+    "contributes": {
+        "target": {
+            "applicationTarget": "EventBridge",
+            "title": "EventBridge Schema Reg",
+            "versions": []
+        },
+        "features": {
+            "nestedCollections": {
+                "level": 1
+            },
+            "disableMultipleTypes": false,
+            "enableReverseEngineering": {
+                "jsonDocument": {
+                    "entities": false,
+                    "model_definitions": true
+                },
+                "jsonSchema": {
+                    "entities": false,
+                    "model_definitions": true
+                },
+                "ddl": {
+                    "entities": false,
+                    "model_definitions": true
+                },
+                "xsd": {
+                    "entities": false,
+                    "model_definitions": true
+                },
+                "plugin": true
+            },
+            "disableDenormalization": true,
+            "enableForwardEngineering": {
+                "jsonDocument": true,
+                "jsonSchema": true,
+                "plugin": true
+            },
+            "disablePatternField": false,
+            "disableChoices": {
+                "anyOf": false,
+                "oneOf": false,
+                "not": false
+            },
+            "enableJsonType": false,
+            "disableNamingConvention": {
+                "entityLevel": true,
+                "containerLevel": true,
+                "fieldLevel": {
+                    "componentObject": true,
+                    "operationObject": true,
+                    "extensions": true,
+                    "media": true
+                }
+            },
+            "disableChildren": {
+                "entityLevel": true
+            },
+            "disableDefinitions": {
+                "internal": true
+            },
+            "disableRelationships": true,
+            "disableJsonPreview": false,
+            "enableErdToggle": true,
+            "enableStackedNestedCollections": true,
+			"externalDefinitionsFromTargetSchema": true,
+			"apiTarget": true
+        }
+    },
+    "description": "Hackolade plugin for AWS EventBridge Schema Registry",
+    "disabled": false
+}

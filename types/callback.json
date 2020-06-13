@@ -1,0 +1,22 @@
+{
+	"name": "callback",
+	"erdAbbreviation": "<callback>",
+	"dtdAbbreviation": "{...}",
+	"parentType": "string",
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"dependencies": [],
+		"minProperties": "",
+		"maxProperties": "",
+		"additionalProperties": false,
+		"enum": [],
+		"hackoladeMeta": {
+			"disableAdd": true
+		}
+	}
+}

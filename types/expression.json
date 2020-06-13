@@ -1,0 +1,23 @@
+{
+	"name": "expression",
+	"erdAbbreviation": "<expr>",
+	"dtdAbbreviation": "{...}",
+	"parentType": "string",
+	"defaultValues": {
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"dependencies": [],
+		"ignore_z_value": true,
+		"minProperties": "",
+		"maxProperties": "",
+		"additionalProperties": false,
+		"enum": [],
+		"hackoladeMeta": {
+			"disableAdd": true,
+			"disableReference": true
+		}
+	}
+}

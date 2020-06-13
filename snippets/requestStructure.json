@@ -1,0 +1,31 @@
+{
+	"name": "requestStructure",
+	"properties": [{
+		"name": "parameters",
+		"type": "array",
+		"subtype": "anyParameter"
+	}, {
+		"name": "requestBody",
+		"type": "requestBody",
+		"properties": [{
+			"name": "application/json",
+			"type": "media",
+			"properties": [{
+				"name": "schema",
+				"type": "object"
+			}, {
+				"name": "examples",
+				"type": "object",
+				"subtype": "example"
+			}, {
+				"name": "encoding",
+				"type": "object",
+				"subtype": "encoding"
+			}]
+		}]
+	}, {
+		"name": "callbacks",
+		"type": "operationObject",
+		"subtype": "callback"
+	}]
+}
