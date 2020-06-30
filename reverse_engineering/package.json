@@ -1,5 +1,5 @@
 {
-  "name": "OpenAPI",
+  "name": "EventBridge",
   "version": "1.0.0",
   "description": "",
   "author": "Hackolade",
@@ -9,6 +9,6 @@
     "lodash.partial": "^4.2.1",
     "node-uuid": "^1.4.7"
   },
-  "type": "file",
+  "type": "multi",
   "installed": true
 }
