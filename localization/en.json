@@ -56,6 +56,7 @@
 	"PROPERTIES_PANE___MAX_VARIABLE": "Max variable",
 	"PROPERTIES_PANE___BACKWARDS": "Backwards",
 	"PROPERTIES_PANE___NORMALIZATION": "Normalization",
+	"CENTRAL_PANE___TAB_DIAGRAM": "API model",
 	"CENTRAL_PANE___TAB_MONGODB_VIEW_SCRIPT": "Create View Script",
 	"CONTEXT_MENU___ADD_BUCKET": "Add resource",
 	"CONTEXT_MENU___ADD_COLLECTION": "Add request",
