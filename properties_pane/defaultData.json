@@ -2,7 +2,8 @@
 	"model": {
 		"modelName": "New EventBridge schema",
 		"dbVersion": "",
-		"dbVendor": "EventBridge"
+		"dbVendor": "EventBridge",
+		"EBSRschemaType": "OpenApi3"
 	},
 	"container": {
 		"name": "/path",

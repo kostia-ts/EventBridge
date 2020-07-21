@@ -1,5 +1,6 @@
 'use strict'
 
+const aws = require('aws-sdk');
 const commonHelper = require('./helpers/commonHelper');
 const dataHelper = require('./helpers/dataHelper');
 const errorHelper = require('./helpers/errorHelper');
@@ -7,7 +8,122 @@ const adaptJsonSchema = require('./helpers/adaptJsonSchema/adaptJsonSchema');
 const resolveExternalDefinitionPathHelper = require('./helpers/resolveExternalDefinitionPathHelper');
 const validationHelper = require('../forward_engineering/helpers/validationHelper');
 
+this.schemasInstance = null;
+
 module.exports = {
+	connect: function(connectionInfo, logger, cb, app) {
+		const { accessKeyId, secretAccessKey, region } = connectionInfo;
+		aws.config.update({ accessKeyId, secretAccessKey, region });
+
+        const schemasInstance = new aws.Schemas({apiVersion: '2019-12-02'});
+		cb(schemasInstance);
+	},
+
+	disconnect: function(connectionInfo, cb){
+		cb();
+	},
+
+	testConnection: function(connectionInfo, logger, cb, app) {
+		logInfo('Test connection', connectionInfo, logger);
+		const connectionCallback = async (schemasInstance) => {
+			try {
+				await schemasInstance.listRegistries().promise();
+				cb();
+			} catch (err) {
+				logger.log('error', { message: err.message, stack: err.stack, error: err }, 'Connection failed');
+				cb(err);
+			}
+		};
+
+		this.connect(connectionInfo, logger, connectionCallback, app);
+	},
+
+	getDbCollectionsNames: function(connectionInfo, logger, cb, app) {
+		const connectionCallback = async (schemasInstance) => {
+            this.schemasInstance = schemasInstance;
+			try {
+				const registriesData = await schemasInstance.listRegistries().promise();
+				const registrySchemas = registriesData.Registries.map(async registry => {
+					const registrySchemasData = await schemasInstance.listSchemas({ RegistryName: registry.RegistryName }).promise();
+					const schemas = registrySchemasData.Schemas.map(({ SchemaName }) => SchemaName);
+					const dbCollectionsChildrenCount = registrySchemasData.Schemas.reduce((acc, { SchemaName, VersionCount }) => {
+						acc[SchemaName] = VersionCount;
+						return acc;
+					}, {});
+					return {
+						dbName: registry.RegistryName,
+						dbCollections: schemas,
+						isEmpty: schemas.length === 0,
+						dbCollectionsChildrenCount
+					};
+				});
+				const result = await Promise.all(registrySchemas);
+				cb(null, result);
+			} catch(err) {
+				logger.log(
+					'error',
+					{ message: err.message, stack: err.stack, error: err },
+					'Retrieving databases and tables information'
+				);
+				cb(err);
+			}
+		};
+
+		logInfo('Retrieving databases and tables information', connectionInfo, logger);
+		this.connect(connectionInfo, logger, connectionCallback, app);
+	},
+
+	getDbCollectionsData: function(data, logger, cb, app) {
+		logger.log('info', data, 'Retrieving schema', data.hiddenKeys);
+		
+		const { collectionData } = data;
+		const registries = collectionData.dataBaseNames;
+        const schemas = collectionData.collections;
+        const registryName = registries[0];
+        const schemaName = schemas[registryName][0];
+
+		const getSchema = async () => {
+			try {
+				const registryData = await this.schemasInstance.describeRegistry({ RegistryName: registryName }).promise();
+                const schemaData = await this.schemasInstance.describeSchema({ RegistryName: registryName, SchemaName: schemaName }).promise();
+				const openAPISchema = JSON.parse(schemaData.Content);
+				const { modelData, modelContent, definitions } = convertOpenAPISchemaToHackolade(openAPISchema);
+				const eventbridgeModelLevelData = {
+					ESBRregistry: registryName,
+					EBSRregistryDescription: registryData.Description,
+					EBSRschemaDescription: schemaData.Description,
+					ESBRschemaARN: schemaData.SchemaArn,
+					ESBRregistryARN: registryData.RegistryArn,
+					EBSRschemaVersion: schemaData.SchemaVersion,
+					EBSRRegistryTags: mapEBSRTags(registryData.Tags),
+					EBSRSchemaTags: mapEBSRTags(schemaData.Tags),
+					EBSRversionCreatedDate: schemaData.VersionCreatedDate,
+					EBSRlastModified: schemaData.LastModified,
+					modelName: schemaName
+				};
+				const modelLevelData = { ...modelData, ...eventbridgeModelLevelData };
+                const modelDefinitions = JSON.parse(definitions);
+				const packagesData = mapPackageData(modelContent);
+				if (packagesData.length === 0) {
+					packagesData[0] = { modelDefinitions };
+				} else {
+					packagesData[0] = { ...packagesData[0], modelDefinitions };
+				}
+
+                cb(null, packagesData, modelLevelData);
+			} catch(err) {
+				logger.log(
+					'error',
+					{ message: err.message, stack: err.stack, error: err },
+					'Retrieving databases and tables information'
+				);
+				cb({ message: err.message, stack: err.stack });
+			}
+		};
+
+		getSchema();
+    },
+    
 	reFromFile(data, logger, callback) {
         commonHelper.getFileData(data.filePath).then(fileData => {
             return getOpenAPISchema(fileData, data.filePath);
@@ -141,3 +257,35 @@ const filterSchema = schema => {
 
 	return schema;
 };
+
+const logInfo = (step, connectionInfo, logger) => {
+	logger.clear();
+	logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
+};
+
+const mapEBSRTags = (tags = {}) => {
+	return Object.entries(tags).reduce((acc, [key, value]) => {
+		return acc.concat({ EBSRtagKey: key, EBSRtagValue: value });
+	}, []);
+}
+
+const mapPackageData = (data) => {
+	return Object.entries(data.entities).reduce((acc, [containerName, containerEntities]) => {
+		const entities = containerEntities.map(entity => {
+			const { collectionName, properties, ...entityLevel } = entity;
+			const { name, bucketInfo } = data.containers.find(item => item.name === containerName);
+			const entityPackage = {
+				dbName: containerName,
+				collectionName,
+				bucketInfo,
+				entityLevel,
+				documents: [],
+				validation: {
+					jsonSchema: { properties }
+				}
+			};
+			return entityPackage;
+		});
+		return acc.concat(...entities);
+	}, []);
+}
