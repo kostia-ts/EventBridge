@@ -1,5 +1,4 @@
-const yaml = require('js-yaml');
-const get = require('lodash.get');
+const aws = require('../reverse_engineering/node_modules/aws-sdk');
 const validationHelper = require('./helpers/validationHelper');
 const getInfo = require('./helpers/infoHelper');
 const { getPaths } = require('./helpers/pathHelper');
@@ -7,6 +6,8 @@ const getComponents = require('./helpers/componentsHelpers');
 const commonHelper = require('./helpers/commonHelper');
 const { getServers } = require('./helpers/serversHelper');
 const getExtensions = require('./helpers/extensionsHelper');
+const { getRegistryCreateCLIStatement, getSchemaCreateCLIStatement } = require('./helpers/awsCLIHelpers/awsCLIHelper');
+const { getApiStatements, getItemUpdateParamiters } = require('./helpers/awsCLIHelpers/applyToInstanceHelper');
 
 module.exports = {
 	generateModelScript(data, logger, cb) {
@@ -16,7 +17,8 @@ module.exports = {
 				externalDocs: modelExternalDocs,
 				tags: modelTags,
 				security: modelSecurity,
-				servers: modelServers
+				servers: modelServers,
+				...modelMetadata
 			} = data.modelData[0];
 
 			const containersIdsFromCallbacks = commonHelper.getContainersIdsForCallbacks(data);
@@ -30,7 +32,7 @@ module.exports = {
 			const externalDocs = commonHelper.mapExternalDocs(modelExternalDocs);
 
 			const openApiSchema = {
-				openapi: dbVersion,
+				openapi: '3.0.0',
 				info,
 				servers,
 				paths,
@@ -42,24 +44,11 @@ module.exports = {
 			const extensions = getExtensions(data.modelData[0].scopesExtensions);
 
 			const resultSchema = Object.assign({}, openApiSchema, extensions);
+			let schema = addCommentsSigns(JSON.stringify(resultSchema, null, 2), 'json');
+			schema = removeCommentLines(schema);
 
-			switch (data.targetScriptOptions.format) {
-				case 'yaml': {
-					const schema = yaml.safeDump(resultSchema, { skipInvalid: true });
-					const schemaWithComments = addCommentsSigns(schema, 'yaml');
-					cb(null, schemaWithComments);
-					break;
-				}
-				case 'json':
-				default: {
-					const schemaString = JSON.stringify(resultSchema, null, 2);
-					let schema = addCommentsSigns(schemaString, 'json');
-					if (!get(data, 'options.isCalledFromFETab')) {
-						schema = removeCommentLines(schema);
-					}
-					cb(null, schema);
-				}
-			}
+			const script = buildAWSCLIScript(modelMetadata, JSON.parse(schema));
+			return cb(null, script);
 		} catch (err) {
 			logger.log('error', { error: err }, 'OpenAPI FE Error');
 			cb(err);
@@ -69,19 +58,10 @@ module.exports = {
 	validate(data, logger, cb) {
 		const { script, targetScriptOptions } = data;
 		try {
-			const filteredScript = removeCommentLines(script);
-			let parsedScript = {};
+			const { schema } = getApiStatements(script);
+			let openAPISchema = JSON.parse(schema.Content);
 
-			switch (targetScriptOptions.format) {
-				case 'yaml':
-					parsedScript = yaml.safeLoad(filteredScript);
-					break;
-				case 'json':
-				default:
-					parsedScript = JSON.parse(filteredScript);
-			}
-
-			validationHelper.validate(parsedScript)
+			validationHelper.validate(openAPISchema)
 				.then((messages) => {
 					cb(null, messages);
 				})
@@ -89,9 +69,69 @@ module.exports = {
 					cb(err.message);
 				});
 		} catch (e) {
-			logger.log('error', { error: e }, 'OpenAPI Validation Error');
+			logger.log('error', { error: e }, 'EventBridge Schema Validation Error');
 
 			cb(e.message);
+		}
+	},
+
+	async applyToInstance(data, logger, callback, app) {
+		const NOT_FOUND_RESPONSE_CODE = 'NotFoundException';
+		const BAD_REQUEST_RESPONSE_CODE = 'BadRequestException';
+		const NOTHING_TO_UPDATE_RESPONSE_MESSAGE = 'Invalid request. Please provide at least one field to update.';
+		if (!data.script) {
+			return callback({ message: 'Empty script' });
+		}
+
+		logger.clear();
+		logger.log('info', data, data.hiddenKeys);
+
+		try {
+			const { registry, schema } = getApiStatements(data.script);
+			const schemasInstance = getSchemasInstance(data);
+			
+			if (registry) {
+				try {
+					if (registry.Description) {
+						await schemasInstance.updateRegistry((getItemUpdateParamiters(registry))).promise();
+					} else {
+						await schemasInstance.describeRegistry({ RegistryName: registry.RegistryName }).promise();
+					}
+				} catch (err) {
+					if (err.code === NOT_FOUND_RESPONSE_CODE) {
+						await schemasInstance.createRegistry(registry).promise();
+					} else {
+						return callback(err);
+					}
+				}
+			}
+			if (schema) {
+				try {
+					await schemasInstance.updateSchema(getItemUpdateParamiters(schema)).promise();
+				} catch (err) {
+					if (err.code === NOT_FOUND_RESPONSE_CODE) {
+						await schemasInstance.createSchema(schema).promise();
+					}
+					else {
+						return callback(err);
+					}
+				}
+			}
+			callback();
+		} catch(err) {
+			callback(err);
+		}
+	},
+
+	async testConnection(connectionInfo, logger, callback, app) {
+		logger.log('info', connectionInfo, 'Test connection', connectionInfo.hiddenKeys);
+		const schemasInstance = getSchemasInstance(connectionInfo);
+		try {
+			await schemasInstance.listRegistries().promise();
+			callback();
+		} catch (err) {
+			logger.log('error', { message: err.message, stack: err.stack, error: err }, 'Connection failed');
+			callback(err);
 		}
 	}
 };
@@ -137,4 +177,16 @@ const removeCommentLines = (scriptString) => {
 		.filter(line => !isCommentedLine.test(line))
 		.join('\n')
 		.replace(/(.*?),\s*(\}|])/g, '$1$2');
+}
+
+const buildAWSCLIScript = (modelMetadata, openAPISchema) => {
+	const registryStatement = getRegistryCreateCLIStatement({ modelMetadata });
+	const schemaStatement = getSchemaCreateCLIStatement({ openAPISchema, modelMetadata });
+	return [registryStatement, schemaStatement].join('\n\n');
+}
+
+const getSchemasInstance = (connectionInfo) => {
+	const { accessKeyId, secretAccessKey, region } = connectionInfo;
+	aws.config.update({ accessKeyId, secretAccessKey, region });
+	return new aws.Schemas({apiVersion: '2019-12-02'});
 }
