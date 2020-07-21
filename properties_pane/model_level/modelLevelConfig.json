@@ -151,14 +151,6 @@ making sure that you maintain a proper JSON format.
 				"disabledOption": true
 			},
 			{
-				"propertyName": "Target version",
-				"propertyKeyword": "dbVersion",
-				"propertyTooltip": "DB version",
-				"propertyType": "select",
-				"options": [],
-				"disabledOption": true
-			},
-			{
 				"propertyName": "EBSR registry",
 				"propertyKeyword": "ESBRregistry",
 				"propertyType": "text"
@@ -169,6 +161,11 @@ making sure that you maintain a proper JSON format.
 				"propertyTooltip": "Popup for multi-line text entry",
 				"propertyType": "details",
 				"template": "textarea"
+			},
+			{
+				"propertyName": "EBSR registry ARN",
+				"propertyKeyword": "ESBRregistryARN",
+				"propertyType": "text"
 			},
 			{
 				"propertyName": "EBSR schema description",
@@ -183,14 +180,14 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "text"
 			},
 			{
-				"propertyName": "EBSR Schema version",
+				"propertyName": "EBSR schema version",
 				"propertyKeyword": "EBSRschemaVersion",
 				"propertyType": "text"
 			},
 			{
-				"propertyName": "EBSR tags",
+				"propertyName": "EBSR registry tags",
 				"propertyType": "group",
-				"propertyKeyword": "EBSRtags",
+				"propertyKeyword": "EBSRRegistryTags",
 				"shouldValidate": true,
 				"propertyTooltip": "",
 				"structure": [
@@ -204,15 +201,36 @@ making sure that you maintain a proper JSON format.
 						"propertyName": "value",
 						"propertyKeyword": "EBSRtagValue",
 						"propertyTooltip": "Custom tag values",
-						"propertyType": "details",
-						"template": "textarea"
+						"propertyType": "text"
 					}
 				]
 			},
 			{
-				"propertyName": "EBSR Schema type",
+				"propertyName": "EBSR schema tags",
+				"propertyType": "group",
+				"propertyKeyword": "EBSRSchemaTags",
+				"shouldValidate": true,
+				"propertyTooltip": "",
+				"structure": [
+					{
+						"propertyName": "key",
+						"propertyKeyword": "EBSRtagKey",
+						"propertyTooltip": "Custom tag key",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "value",
+						"propertyKeyword": "EBSRtagValue",
+						"propertyTooltip": "Custom tag values",
+						"propertyType": "text"
+					}
+				]
+			},
+			{
+				"propertyName": "EBSR schema type",
 				"propertyKeyword": "EBSRschemaType",
-				"propertyType": "text"
+				"propertyType": "text",
+				"disabled": true
 			},
 			{
 				"propertyName": "EBSR creation date",
