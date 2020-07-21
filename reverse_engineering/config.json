@@ -10,6 +10,10 @@
         "errors": {
             "NO_DATABASES": "There is no schema registries in AWS account",
             "WRONG_CONNECTION": "Can not connect to EventBridge schema registry"
+        },
+        "itemsSelectionModalOptions": {
+            "maxSelectedItems": 1,
+            "disableParentItems": true
         }
     }
 ]
