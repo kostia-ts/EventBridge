@@ -52,7 +52,7 @@ const validate = (script, options = {}) => new Promise((resolve, reject) => {
 			return resolve([{
 				type: 'success',
 				label: '',
-				title: 'OpenAPI schema is valid',
+				title: 'EventBridge schema is valid',
 				context: {
 					swagger: api.swagger,
 					host: api.host,
