@@ -13,7 +13,8 @@
         },
         "itemsSelectionModalOptions": {
             "maxSelectedItems": 1,
-            "disableParentItems": true
+            "disableParentItems": true,
+            "collectionHasVersions": true
         }
     }
 ]

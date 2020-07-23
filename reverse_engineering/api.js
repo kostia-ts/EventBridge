@@ -80,12 +80,19 @@ module.exports = {
 		const registries = collectionData.dataBaseNames;
         const schemas = collectionData.collections;
         const registryName = registries[0];
-        const schemaName = schemas[registryName][0];
+		const schemaName = schemas[registryName][0];
+		const schemaVersion = collectionData.collectionVersion[registryName] && collectionData.collectionVersion[registryName][schemaName];
 
 		const getSchema = async () => {
 			try {
 				const registryData = await this.schemasInstance.describeRegistry({ RegistryName: registryName }).promise();
-                const schemaData = await this.schemasInstance.describeSchema({ RegistryName: registryName, SchemaName: schemaName }).promise();
+                const schemaData = await this.schemasInstance
+                  .describeSchema({
+                    RegistryName: registryName,
+                    SchemaName: schemaName,
+                    SchemaVersion: schemaVersion
+                  })
+                  .promise();
 				const openAPISchema = JSON.parse(schemaData.Content);
 				const { modelData, modelContent, definitions } = convertOpenAPISchemaToHackolade(openAPISchema);
 				const eventbridgeModelLevelData = {
@@ -182,6 +189,31 @@ module.exports = {
 
 	resolveExternalDefinitionPath(data, logger, callback) {
 		resolveExternalDefinitionPathHelper.resolvePath(data, callback);
+	},
+
+	getDBCollectionVersions(data, logger, callback) {
+		const getSchemaVersions = async () => {
+			const { containerName, entityName } = data;
+			try {
+				const schemaVersionsResponse = await this.schemasInstance
+					.listSchemaVersions({
+						RegistryName: containerName,
+						SchemaName: entityName,
+					})
+					.promise();
+				const schemaVersions = schemaVersionsResponse.SchemaVersions.map(({ SchemaVersion }) => ({ name: SchemaVersion }));
+				callback(null, { collectionVersions: schemaVersions });
+			} catch (err) {
+				logger.log(
+					'error',
+					{ message: err.message, stack: err.stack, error: err },
+					'Retrieving schema versions'
+				);
+				callback({ message: err.message, stack: err.stack });
+			}
+		}
+
+		getSchemaVersions();
 	}
 };
 
