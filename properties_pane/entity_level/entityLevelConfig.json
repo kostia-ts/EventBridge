@@ -142,6 +142,18 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
+				"propertyName": "Entity type",
+				"propertyKeyword": "entityType",
+				"type": "text",
+				"hidden": true
+			},
+			{
+				"propertyName": "Entity subtype",
+				"propertyKeyword": "subtype",
+				"type": "text",
+				"hidden": true
+			},
+			{
 				"propertyName": "Response",
 				"propertyKeyword": "collectionName",
 				"propertyTooltip": "Select from list of options",
