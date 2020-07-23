@@ -47,7 +47,7 @@ module.exports = {
 			let schema = addCommentsSigns(JSON.stringify(resultSchema, null, 2), 'json');
 			schema = removeCommentLines(schema);
 
-			const script = buildAWSCLIScript(modelMetadata, JSON.parse(schema));
+			const script = buildAWSCLIScript(modelMetadata, JSON.parse(schema), data.options);
 			return cb(null, script);
 		} catch (err) {
 			logger.log('error', { error: err }, 'OpenAPI FE Error');
@@ -179,9 +179,9 @@ const removeCommentLines = (scriptString) => {
 		.replace(/(.*?),\s*(\}|])/g, '$1$2');
 }
 
-const buildAWSCLIScript = (modelMetadata, openAPISchema) => {
-	const registryStatement = getRegistryCreateCLIStatement({ modelMetadata });
-	const schemaStatement = getSchemaCreateCLIStatement({ openAPISchema, modelMetadata });
+const buildAWSCLIScript = (modelMetadata, openAPISchema, targetScriptOptions = {}) => {
+	const registryStatement = getRegistryCreateCLIStatement({ modelMetadata, isUpdateScript: targetScriptOptions.isUpdateScript });
+	const schemaStatement = getSchemaCreateCLIStatement({ openAPISchema, modelMetadata, isUpdateScript: targetScriptOptions.isUpdateScript });
 	return [registryStatement, schemaStatement].join('\n\n');
 }
 

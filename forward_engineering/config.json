@@ -6,6 +6,9 @@
 	"keepRequiredOnArrayItem": true,
 	"applyScriptToInstance": true,
 	"hasUpdateScript": true,
+	"updateScriptOptionsDefaultValueDependency": {
+		"keyword": "ESBRschemaARN"
+	},
 	"level": {
 		"entity": false,
 		"container": false,
