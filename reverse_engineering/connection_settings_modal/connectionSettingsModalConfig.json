@@ -6,7 +6,10 @@
 				"inputLabel": "Name",
 				"inputKeyword": "name",
 				"inputType": "text",
-				"inputPlaceholder": "Name"
+				"inputPlaceholder": "Name",
+				"validation": {
+					"regex": "([^\\s])"
+				}
 			}
 		]
 	},
@@ -17,14 +20,20 @@
 				"inputLabel": "Access Key ID",
 				"inputKeyword": "accessKeyId",
 				"inputType": "text",
-				"inputPlaceholder": "Access Key ID"
+				"inputPlaceholder": "Access Key ID",
+				"validation": {
+					"regex": "([^\\s])"
+				}
 			},
 			{
 				"inputLabel": "Secret Access Key",
 				"inputKeyword": "secretAccessKey",
 				"inputType": "password",
 				"inputPlaceholder": "Secret Access Key",
-				"isHiddenKey": true
+				"isHiddenKey": true,
+				"validation": {
+					"regex": "([^\\s])"
+				}
 			},
 			{
 				"inputLabel": "Region",
