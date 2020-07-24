@@ -9,7 +9,7 @@
 	"MAIN_MENU___INSERT_FIELD": "Insert Field",
 	"MAIN_MENU___APPEND_FIELD": "Append Field",
 	"MAIN_MENU___REVERSE_DB_COLLECTIONS": "Schema registry...",
-	"MAIN_MENU___FORWARD_MODEL_COLLECTIONS": "OpenAPI File...",
+	"MAIN_MENU___FORWARD_MODEL_COLLECTIONS": "AWS CLI script...",
 	"TOOLBAR___ADD_BUCKET": "Add resource",
 	"TOOLBAR___ADD_COLLECTION": "Add request",
 	"TOOLBAR___ADD_CHILD_COLLECTION": "Add Response",
