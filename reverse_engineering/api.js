@@ -81,11 +81,8 @@ module.exports = {
         const schemas = collectionData.collections;
         const registryName = registries[0];
 		const schemaName = schemas[registryName][0];
-		const schemaVersion =
-			typeof collectionData.collectionVersion === "string"
-				? collectionData.collectionVersion
-				: collectionData.collectionVersion[registryName] &&
-				collectionData.collectionVersion[registryName][schemaName];
+		const schemaVersion = collectionData.collectionVersion[registryName] &&
+			collectionData.collectionVersion[registryName][schemaName];
 
 		const getSchema = async () => {
 			try {
