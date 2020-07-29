@@ -42,18 +42,18 @@ module.exports = {
 		const connectionCallback = async (schemasInstance) => {
             this.schemasInstance = schemasInstance;
 			try {
-				const registriesData = await schemasInstance.listRegistries().promise();
-				const registrySchemas = registriesData.Registries.map(async registry => {
-					const registrySchemasData = await schemasInstance.listSchemas({ RegistryName: registry.RegistryName }).promise();
-					const schemas = registrySchemasData.Schemas.map(({ SchemaName }) => SchemaName);
-					const dbCollectionsChildrenCount = registrySchemasData.Schemas.reduce((acc, { SchemaName, VersionCount }) => {
+				const registries = await listRegistries(schemasInstance);
+				const registrySchemas = registries.map(async registry => {
+					const schemas = await listSchemas(schemasInstance, registry.RegistryName);
+					const schemaNames = schemas.map(({ SchemaName }) => SchemaName);
+					const dbCollectionsChildrenCount = schemas.reduce((acc, { SchemaName, VersionCount }) => {
 						acc[SchemaName] = VersionCount;
 						return acc;
 					}, {});
 					return {
 						dbName: registry.RegistryName,
-						dbCollections: schemas,
-						isEmpty: schemas.length === 0,
+						dbCollections: schemaNames,
+						isEmpty: schemaNames.length === 0,
 						dbCollectionsChildrenCount
 					};
 				});
@@ -65,7 +65,7 @@ module.exports = {
 					{ message: err.message, stack: err.stack, error: err },
 					'Retrieving databases and tables information'
 				);
-				cb(err);
+				cb({ message: err.message, stack: err.stack });
 			}
 		};
 
@@ -321,4 +321,29 @@ const mapPackageData = (data) => {
 		});
 		return acc.concat(...entities);
 	}, []);
+}
+
+const listRegistries = async (schemasInstance) => {
+	let { NextToken, Registries } = await schemasInstance.listRegistries().promise();
+	const registries = [...Registries];
+	let nextToken = NextToken;
+	while (nextToken) {
+		const { NextToken, Registries } = await schemasInstance.listRegistries({ NextToken: nextToken }).promise();
+		registries.push(...Registries);
+		nextToken = NextToken;
+	}
+	return registries;
+}
+
+const listSchemas = async (schemasInstance, registryName) => {
+	const { NextToken, Schemas } = await schemasInstance.listSchemas({ RegistryName: registryName }).promise();
+	const schemas = [...Schemas];
+	let nextToken = NextToken;
+	while (nextToken) {
+		const { NextToken, Schemas } =
+			await schemasInstance.listSchemas({ RegistryName: registryName, NextToken: nextToken }).promise();
+		schemas.push(...Schemas);
+		nextToken = NextToken;
+	}
+	return schemas;
 }
