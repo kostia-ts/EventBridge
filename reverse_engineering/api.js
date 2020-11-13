@@ -1,6 +1,8 @@
 'use strict'
 
 const aws = require('aws-sdk');
+const fs = require('fs');
+const https = require('https');
 const commonHelper = require('./helpers/commonHelper');
 const dataHelper = require('./helpers/dataHelper');
 const errorHelper = require('./helpers/errorHelper');
@@ -11,10 +13,17 @@ const validationHelper = require('../forward_engineering/helpers/validationHelpe
 this.schemasInstance = null;
 
 module.exports = {
-	connect: function(connectionInfo, logger, cb, app) {
-		const { accessKeyId, secretAccessKey, region } = connectionInfo;
-		aws.config.update({ accessKeyId, secretAccessKey, region });
-
+	connect: async (connectionInfo, logger, cb, app) => {
+		const { accessKeyId, secretAccessKey, region, certAuthorityPath } = connectionInfo;
+		const certAuthority = await getCertificateAuthority(certAuthorityPath);
+		const httpOptions = certAuthority ? {
+			httpOptions: {
+				agent: new https.Agent({
+					rejectUnauthorized: true,
+					ca: [certAuthority]
+				})}
+			} : {};
+		aws.config.update({ accessKeyId, secretAccessKey, region, ...httpOptions });
         const schemasInstance = new aws.Schemas({apiVersion: '2019-12-02'});
 		cb(schemasInstance);
 	},
@@ -347,3 +356,18 @@ const listSchemas = async (schemasInstance, registryName) => {
 	}
 	return schemas;
 }
+
+const getCertificateAuthority = path => {
+	if (!path) {
+		return Promise.resolve('');
+	}
+
+	return new Promise(resolve => {
+		fs.readFile(path, 'utf8', (err, data) => {
+			if (err) {
+				resolve('');
+			}
+			resolve(data);
+		});
+	});
+};
