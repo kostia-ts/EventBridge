@@ -123,5 +123,15 @@
 				]
 			}
 		]
+	},
+	{
+		"lowerTab": "SSL",
+		"structure": [{
+			"inputLabel": "Certificate Authority",
+			"inputKeyword": "certAuthorityPath",
+			"inputType": "file",
+			"inputPlaceholder": "Certificate Authority",
+			"extensions": ["pem", "crt", "key"]
+		}]
 	}
 ]
