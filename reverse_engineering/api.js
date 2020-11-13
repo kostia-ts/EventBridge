@@ -15,7 +15,7 @@ this.schemasInstance = null;
 module.exports = {
 	connect: async (connectionInfo, logger, cb, app) => {
 		const { accessKeyId, secretAccessKey, region, certAuthorityPath } = connectionInfo;
-		const certAuthority = getCertificateAuthority(certAuthorityPath);
+		const certAuthority = await getCertificateAuthority(certAuthorityPath);
 		const httpOptions = certAuthority ? {
 			httpOptions: {
 				agent: new https.Agent({
