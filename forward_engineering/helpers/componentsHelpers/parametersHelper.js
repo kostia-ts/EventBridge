@@ -28,6 +28,8 @@ function mapParameter(data, required) {
 		return getRef(data);
 	}
 
+	const schemaKeyword = getSchemaKeyword(data.properties);
+
 	const parameter = {
 		name: data.parameterName,
 		in: getIn(data.type),
@@ -38,7 +40,7 @@ function mapParameter(data, required) {
 		style: data.style,
 		explode: data.explode,
 		allowReserved: data.allowReserved,
-		schema: mapSchema(get(data, 'properties.schema'), 'schema'),
+		schema:	mapSchema(get(data, ['properties', schemaKeyword]), 'schema'),
 		example: data.sample,
 		examples: getExamples(get(data, 'properties.examples')),
 		content: getContent(get(data, 'properties.content'))
@@ -112,8 +114,10 @@ function getContent(data) {
 function mapMediaTypeObject(data) {
     if (!data || !data.properties) {
         return;
-    }
-	let schema = mapSchema(get(data, 'properties.schema'), 'schema');
+	}
+	
+	const schemaKeyword = getSchemaKeyword(data.properties);
+	let schema = mapSchema(get(data, ['properties', schemaKeyword]), 'schema');
 	if (!schema && hasChoice(data)) {
 		schema = mapSchema({
 			type: 'object',
@@ -159,6 +163,18 @@ function mapEncoding(data) {
             acc[key] = value;
             return acc;
         }, {});
+}
+
+function getSchemaKeyword(properties = {}) {
+	const defaultKeyword = 'schema'; 
+	const restRequestPropNames = ['content', 'examples', 'encoding'];
+
+	if (get(properties, defaultKeyword)) {
+		return defaultKeyword;
+	}
+
+	const schemaKey = Object.keys(properties).find(key => !restRequestPropNames.includes(key));
+	return schemaKey;
 }
 
 module.exports = {

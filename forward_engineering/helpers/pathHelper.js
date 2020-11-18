@@ -46,6 +46,7 @@ function getRequestData(collections, containers, containerId, containersPath = [
 	return collections
 		.filter(collection => collection.entityType === 'request')
 		.map(data => {
+			const requestBodyPropKeyword = getRequestBodyPropKeyword(data.properties);
 			const request = {
 				tags: commonHelper.mapArrayFieldByName(data.tags, 'tag'),
 				summary: data.summary,
@@ -53,7 +54,10 @@ function getRequestData(collections, containers, containerId, containersPath = [
 				externalDocs: commonHelper.mapExternalDocs(data.externalDocs),
 				operationId: data.operationId,
 				parameters: mapRequestParameters(get(data, 'properties.parameters')),
-				requestBody: mapRequestBody(get(data, 'properties.requestBody'), get(data, 'required', []).includes('requestBody')),
+				requestBody: mapRequestBody(
+					get(data.properties, requestBodyPropKeyword),
+					get(data, 'required', []).includes(requestBodyPropKeyword),
+				),
 				responses: mapResponses(collections, data.GUID, isPathActivated && data.isActivated),
 				callbacks: getCallbacks(get(data, 'properties.callbacks'), containers, containerId, containersPath),
 				deprecated: data.deprecated,
@@ -104,7 +108,7 @@ function mapResponses(collections, collectionId, isParentActivated) {
 			const responseCode = collection.collectionName;
 			const shouldResponseBeCommented = !collection.isActivated && isParentActivated;
 			const extensions = getExtensions(collection.scopesExtensions);
-			const response = mapResponse(get(collection, 'properties.response'), collection.description, shouldResponseBeCommented);
+			const response = mapResponse(get(collection, ['properties', Object.keys(collection.properties)[0]]), collection.description, shouldResponseBeCommented);
 
 			return { responseCode, response: { ...response, ...extensions } };
 		})
@@ -147,6 +151,18 @@ function getCallbacks(data, containers, containerId, containersPath = []) {
 			acc = Object.assign({}, acc, item);
 			return acc;
 		}, {});
+}
+
+function getRequestBodyPropKeyword(properties = {}) {
+	const defaultKeyword = 'requestBody'; 
+	const restRequestPropNames = ['parameters', 'callbacks'];
+
+	if (get(properties, defaultKeyword)) {
+		return defaultKeyword;
+	}
+
+	const requestBodyKey = Object.keys(properties).find(key => !restRequestPropNames.includes(key));
+	return requestBodyKey
 }
 
 module.exports = {
