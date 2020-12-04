@@ -14,14 +14,15 @@ this.schemasInstance = null;
 
 module.exports = {
 	connect: async (connectionInfo, logger, cb, app) => {
-		const { accessKeyId, secretAccessKey, region, certAuthorityPath } = connectionInfo;
-		const certAuthority = await getCertificateAuthority(certAuthorityPath);
-		const httpOptions = certAuthority ? {
+		const { accessKeyId, secretAccessKey, region } = connectionInfo;
+		const sslOptions = await getSslOptions(connectionInfo);
+		const httpOptions = sslOptions.ssl ? {
 			httpOptions: {
 				agent: new https.Agent({
 					rejectUnauthorized: true,
-					ca: [certAuthority]
-				})}
+					...sslOptions
+				})},
+				...sslOptions
 			} : {};
 		aws.config.update({ accessKeyId, secretAccessKey, region, ...httpOptions });
         const schemasInstance = new aws.Schemas({apiVersion: '2019-12-02'});
@@ -357,7 +358,7 @@ const listSchemas = async (schemasInstance, registryName) => {
 	return schemas;
 }
 
-const getCertificateAuthority = path => {
+const readCertificateFile = path => {
 	if (!path) {
 		return Promise.resolve('');
 	}
@@ -370,4 +371,30 @@ const getCertificateAuthority = path => {
 			resolve(data);
 		});
 	});
+};
+
+const getSslOptions = async connectionInfo => {
+	switch (connectionInfo.sslType) {
+		case 'Server validation': {
+			const certAuthority = await readCertificateFile(connectionInfo.certAuthorityPath);
+			return {
+				ssl: true,
+				ca: [certAuthority],
+			};
+		}
+		case 'Server and client validation': {
+			const certAuthority = await readCertificateFile(connectionInfo.certAuthorityPath);
+			const key = await readCertificateFile(connectionInfo.clientPrivateKey);
+			const cert = await readCertificateFile(connectionInfo.clientCert);
+			return {
+				ssl: true,
+				ca: [certAuthority],
+				key: [key],
+				cert: [cert],
+				passphrase: connectionInfo.clientKeyPassword,
+			};
+		}
+		default:
+			return { ssl: false };
+	}
 };

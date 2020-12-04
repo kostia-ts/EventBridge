@@ -127,11 +127,73 @@
 	{
 		"lowerTab": "SSL",
 		"structure": [{
+			"inputLabel": "SSL",
+			"inputKeyword": "sslType",
+			"inputType": "select",
+			"options": [
+				{
+					"value": "Off",
+					"label": "Off"
+				},
+				{
+					"value": "Server validation",
+					"label": "Server validation"
+				},
+				{
+					"value": "Server and client validation",
+					"label": "Server and client validation"
+				}
+			]
+		},{
 			"inputLabel": "Certificate Authority",
 			"inputKeyword": "certAuthorityPath",
 			"inputType": "file",
 			"inputPlaceholder": "Certificate Authority",
-			"extensions": ["pem", "crt", "key"]
+			"extensions": ["pem", "crt", "key", "cer"],
+			"dependency": {
+				"key": "sslType",
+				"value": "Server validation"
+			}
+		},
+		{
+			"inputLabel": "Client Certificate",
+			"inputKeyword": "clientCert",
+			"inputType": "file",
+			"inputPlaceholder": "Client Certificate",
+			"extensions": ["pem", "crt", "key", "cer"],
+			"dependency": {
+				"key": "sslType",
+				"value": "Server and client validation"
+			},
+			"validation": {
+				"regex": "([^\\s])"
+			}
+		},
+		{
+			"inputLabel": "Client Private Key",
+			"inputKeyword": "clientPrivateKey",
+			"inputType": "file",
+			"inputPlaceholder": "Client Private Key",
+			"dependency": {
+				"key": "sslType",
+				"value": "Server and client validation"
+			},
+			"validation": {
+				"regex": "([^\\s])"
+			}
+		},
+		{
+			"inputLabel": "Password",
+			"inputKeyword": "clientKeyPassword",
+			"inputType": "password",
+			"inputPlaceholder": "Password",
+			"dependency": {
+				"key": "sslType",
+				"value": "Server and client validation"
+			},
+			"validation": {
+				"regex": "([^\\s])"
+			}
 		}]
 	}
 ]
