@@ -27,6 +27,7 @@ function getTypeProps(data, key) {
 		case 'array': {
 			const arrayProps = {
 				type,
+				title: data.title || undefined,
 				items: getArrayItemsType(items),
 				collectionFormat: data.collectionFormat,
 				minItems: data.minItems,
@@ -44,6 +45,7 @@ function getTypeProps(data, key) {
 		case 'object': {
 			const objectProps = {
 				type,
+				title: data.title || undefined,
 				description: data.description || undefined,
 				required: required || undefined,
 				properties: getObjectProperties(properties),
@@ -157,6 +159,7 @@ function getPrimitiveTypeProps(data) {
 	const properties = {
 		type: data.type,
 		format: data.format || data.mode,
+		title: data.title || undefined,
 		description: data.description,
 		exclusiveMinimum: data.exclusiveMinimum,
 		exclusiveMaximum: data.exclusiveMaximum,
