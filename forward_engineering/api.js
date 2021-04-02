@@ -145,8 +145,9 @@ const replaceRelativePathByAbsolute=(script, options)=>{
 	return script.replace(/("\$ref":\s*)"(.*?(?<!\\))"/g, (match, refGroup, relativePath)=>{
 		const isAbsolutePath=relativePath.startsWith('file:');
 		const isInternetLink=relativePath.startsWith('http:') || relativePath.startsWith('https:');
+		const isModelRef=relativePath.startsWith('#');
 
-		if(isAbsolutePath || isInternetLink){
+		if(isAbsolutePath || isInternetLink || isModelRef){
 			return match
 		}
 		const absolutePath=path.resolve(modelDirectory, '..',relativePath)
