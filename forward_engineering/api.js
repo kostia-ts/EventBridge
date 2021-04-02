@@ -8,6 +8,7 @@ const { getServers } = require('./helpers/serversHelper');
 const getExtensions = require('./helpers/extensionsHelper');
 const { getRegistryCreateCLIStatement, getSchemaCreateCLIStatement } = require('./helpers/awsCLIHelpers/awsCLIHelper');
 const { getApiStatements, getItemUpdateParamiters } = require('./helpers/awsCLIHelpers/applyToInstanceHelper');
+const path=require('path');
 
 module.exports = {
 	generateModelScript(data, logger, cb) {
@@ -59,7 +60,7 @@ module.exports = {
 		const { script, targetScriptOptions } = data;
 		try {
 			const { schema } = getApiStatements(script);
-			let openAPISchema = JSON.parse(schema.Content);
+			let openAPISchema = JSON.parse(replaceRelativePathByAbsolute(schema.Content,targetScriptOptions));
 
 			validationHelper.validate(openAPISchema)
 				.then((messages) => {
@@ -135,6 +136,24 @@ module.exports = {
 		}
 	}
 };
+
+const replaceRelativePathByAbsolute=(script, options)=>{
+	const modelDirectory=options?options.modelDirectory:'';
+	if(!modelDirectory || typeof modelDirectory !== 'string'){
+		return script;
+	}
+	return script.replace(/("\$ref":\s*)"(.*?(?<!\\))"/g, (match, refGroup, relativePath)=>{
+		const isAbsolutePath=relativePath.startsWith('file:');
+		const isInternetLink=relativePath.startsWith('http:') || relativePath.startsWith('https:');
+
+		if(isAbsolutePath || isInternetLink){
+			return match
+		}
+		const absolutePath=path.resolve(modelDirectory, '..',relativePath)
+
+		return `${refGroup}"file://${absolutePath}"`
+	});
+}
 
 const addCommentsSigns = (string, format) => {
 	const commentsStart = /hackoladeCommentStart\d+/i;
