@@ -143,17 +143,17 @@ const replaceRelativePathByAbsolute=(script, options)=>{
 		return script;
 	}
 	return script.replace(/("\$ref":\s*)"(.*?(?<!\\))"/g, (match, refGroup, relativePath)=>{
-		const isAbsolutePath=relativePath.startsWith('file:');
-		const isInternetLink=relativePath.startsWith('http:') || relativePath.startsWith('https:');
-		const isModelRef=relativePath.startsWith('#');
+        const isAbsolutePath=relativePath.startsWith('file:');
+        const isInternetLink=relativePath.startsWith('http:') || relativePath.startsWith('https:');
+        const isModelRef=relativePath.startsWith('#');
 
-		if(isAbsolutePath || isInternetLink || isModelRef){
-			return match
-		}
-		const absolutePath=path.resolve(modelDirectory, '..',relativePath)
-
-		return `${refGroup}"file://${absolutePath}"`
-	});
+        if(isAbsolutePath || isInternetLink || isModelRef){
+            return match
+        }
+		
+        const absolutePath=path.join(path.dirname(modelDirectory), relativePath).replace(/\\/g, '/');
+        return `${refGroup}"file://${absolutePath}"`
+    });
 }
 
 const addCommentsSigns = (string, format) => {
