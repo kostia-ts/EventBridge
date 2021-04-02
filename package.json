@@ -1,10 +1,10 @@
 {
     "name": "EventBridge",
-    "version": "0.1.6",
-    "versionDate": "2021-03-12",
+    "version": "0.1.7",
+    "versionDate": "2021-04-02",
     "author": "hackolade",
     "engines": {
-        "hackolade": "4.1.11",
+        "hackolade": "4.3.15",
         "hackoladePlugin": "1.0.0"
     },
     "contributes": {
